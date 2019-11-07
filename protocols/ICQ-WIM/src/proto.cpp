@@ -404,7 +404,7 @@ INT_PTR CIcqProto::GetCaps(int type, MCONTACT)
 	switch (type) {
 	case PFLAGNUM_1:
 		nReturn = PF1_IM | PF1_AUTHREQ | PF1_BASICSEARCH | PF1_ADDSEARCHRES | /*PF1_SEARCHBYNAME | TODO */
-			PF1_VISLIST | PF1_MODEMSG | PF1_FILE | PF1_CONTACT | PF1_SERVERCLIST;
+			PF1_VISLIST | PF1_FILE | PF1_CONTACT | PF1_SERVERCLIST;
 		break;
 
 	case PFLAGNUM_2:
@@ -563,30 +563,6 @@ int CIcqProto::SetStatus(int iNewStatus)
 	}
 
 	return 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////
-// PS_GetAwayMsg - returns a contact's away message
-
-HANDLE CIcqProto::GetAwayMsg(MCONTACT)
-{
-	return nullptr; // Failure
-}
-
-////////////////////////////////////////////////////////////////////////////////////////
-// PSR_AWAYMSG - processes received status mode message
-
-int CIcqProto::RecvAwayMsg(MCONTACT, int, PROTORECVEVENT*)
-{
-	return 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////
-// PS_SetAwayMsg - sets the away status message
-
-int CIcqProto::SetAwayMsg(int, const wchar_t*)
-{
-	return 0; // Success
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
