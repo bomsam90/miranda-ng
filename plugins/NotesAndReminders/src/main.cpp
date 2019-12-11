@@ -82,7 +82,7 @@ static void addMenuItem(CMenuItem &mi)
 	Menu_AddMainMenuItem(&mi);
 }
 
-int OnModulesLoaded(WPARAM, LPARAM)
+static int OnModulesLoaded(WPARAM, LPARAM)
 {
 	// register fonts and hotkeys
 	RegisterFontServiceFonts();
@@ -161,6 +161,13 @@ int OnModulesLoaded(WPARAM, LPARAM)
 	return 0;
 }
 
+static int OnPreShutdown(WPARAM, LPARAM)
+{
+	CloseNotesList();
+	CloseReminderList();
+	return 0;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////
 
 CMPlugin::CMPlugin() :
@@ -202,6 +209,7 @@ int CMPlugin::Load()
 	WS_Init();
 
 	HookEvent(ME_SYSTEM_MODULESLOADED, OnModulesLoaded);
+	HookEvent(ME_SYSTEM_PRESHUTDOWN, OnPreShutdown);
 	HookEvent(ME_OPT_INITIALISE, OnOptInitialise);
 	InitIcons();
 
@@ -212,8 +220,6 @@ int CMPlugin::Load()
 
 int CMPlugin::Unload()
 {
-	CloseNotesList();
-	CloseReminderList();
 	SaveNotes();
 	SaveReminders();
 	DestroyMsgWindow();
