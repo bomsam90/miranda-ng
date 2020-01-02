@@ -6,7 +6,7 @@
 // Copyright © 2001-2002 Jon Keating, Richard Hughes
 // Copyright © 2002-2004 Martin Öberg, Sam Kothari, Robert Rainwater
 // Copyright © 2004-2010 Joe Kucera
-// Copyright © 2012-2019 Miranda NG team
+// Copyright © 2012-2020 Miranda NG team
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -41,13 +41,12 @@
 #include <fcntl.h>
 #include <process.h>
 
-#include <map>
-
 // Miranda IM SDK includes
 #include <newpluginapi.h> // This must be included first
 #include <m_avatars.h>
 #include <m_chat_int.h>
 #include <m_clistint.h>
+#include <m_contacts.h>
 #include <m_database.h>
 #include <m_gui.h>
 #include <m_idle.h>

@@ -1,7 +1,7 @@
 // -----------------------------------------------------------------------------
 // ICQ plugin for Miranda NG
 // -----------------------------------------------------------------------------
-// Copyright © 2018-19 Miranda NG team
+// Copyright © 2018-20 Miranda NG team
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -71,7 +71,7 @@ void CIcqProto::ProcessBuddyList(const JSONNode &ev)
 		Menu_ShowItem(m_hUploadGroups, true);
 
 	for (auto &it : m_arCache)
-		if (!it->m_bInList)
+		if (!it->m_bInList && !getBool(it->m_hContact, "IcqDeleted"))
 			db_set_b(it->m_hContact, "CList", "NotOnList", 1);
 
 	RetrieveUserInfo();
@@ -79,8 +79,6 @@ void CIcqProto::ProcessBuddyList(const JSONNode &ev)
 
 void CIcqProto::ProcessDiff(const JSONNode &ev)
 {
-	std::map<MCONTACT, bool> processed;
-
 	for (auto &block : ev) {
 		CMStringW szType = block["type"].as_mstring();
 		if (szType != "updated" && szType != "created" && szType != "deleted")
@@ -108,14 +106,13 @@ void CIcqProto::ProcessDiff(const JSONNode &ev)
 			bool bCreated = false, bDeleted = (szType == "deleted");
 
 			for (auto &buddy : it["buddies"]) {
+				if (bDeleted)
+					continue;
+
 				MCONTACT hContact = ParseBuddyInfo(buddy);
 				if (hContact == INVALID_CONTACT_ID)
 					continue;
 
-				if (bDeleted)
-					continue;
-
-				processed[hContact] = true;
 				setWString(hContact, "IcqGroup", pGroup->wszName);
 
 				ptrW wszGroup(Clist_GetGroup(hContact));

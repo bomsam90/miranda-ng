@@ -6,7 +6,7 @@
 // Copyright © 2001-2002 Jon Keating, Richard Hughes
 // Copyright © 2002-2004 Martin Öberg, Sam Kothari, Robert Rainwater
 // Copyright © 2004-2010 Joe Kucera, George Hazan
-// Copyright © 2012-2019 Miranda NG team
+// Copyright © 2012-2020 Miranda NG team
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -320,7 +320,7 @@ int CIcqProto::OnDbEventRead(WPARAM, LPARAM hDbEvent)
 		return 0;
 
 	// filter out only events of my protocol
-	const char *szProto = GetContactProto(hContact);
+	const char *szProto = Proto_GetBaseAccountName(hContact);
 	if (mir_strcmp(szProto, m_szModuleName))
 		return 0;
 

@@ -1,7 +1,7 @@
 // -----------------------------------------------------------------------------
 // ICQ plugin for Miranda NG
 // -----------------------------------------------------------------------------
-// Copyright © 2018-19 Miranda NG team
+// Copyright © 2018-20 Miranda NG team
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -289,6 +289,11 @@ MCONTACT CIcqProto::ParseBuddyInfo(const JSONNode &buddy, MCONTACT hContact)
 	const JSONNode &var = buddy["friendly"];
 	if (var)
 		setWString(hContact, "Nick", var.as_mstring());
+
+	if (buddy["deleted"].as_bool()) {
+		setByte(hContact, "IcqDeleted", 1);
+		db_unset(hContact, "CList", "NotOnList");
+	}
 
 	Json2string(hContact, buddy, "emailId", "Email");
 	Json2string(hContact, buddy, "cellNumber", "Cellular");
@@ -599,8 +604,28 @@ void CIcqProto::OnAddBuddy(NETLIBHTTPREQUEST *pReply, AsyncHttpRequest *pReq)
 {
 	JsonReply root(pReply);
 	if (root.error() == 200) {
-		RetrieveUserInfo(pReq->hContact);
-		db_unset(pReq->hContact, "CList", "NotOnList");
+		CMStringW wszId = getMStringW(pReq->hContact, DB_KEY_ID);
+		for (auto &it : root.data()["results"]) {
+			if (it["buddy"].as_mstring() != wszId)
+				continue;
+
+			int iResultCode = it["resultCode"].as_int();
+			if (iResultCode != 0) {
+				debugLogA("Contact %d failed to add: error %d", pReq->hContact, iResultCode);
+
+				POPUPDATAW Popup = {};
+				Popup.lchIcon = IcoLib_GetIconByHandle(Skin_GetIconHandle(SKINICON_ERROR));
+				wcsncpy_s(Popup.lpwzText, TranslateT("Buddy addition failed"), _TRUNCATE);
+				wcsncpy_s(Popup.lpwzContactName, Clist_GetContactDisplayName(pReq->hContact), _TRUNCATE);
+				Popup.iSeconds = 20;
+				PUAddPopupW(&Popup);
+
+				// Contact_RemoveFromList(pReq->hContact);
+			}
+
+			RetrieveUserInfo(pReq->hContact);
+			db_unset(pReq->hContact, "CList", "NotOnList");
+		}
 	}
 }
 
