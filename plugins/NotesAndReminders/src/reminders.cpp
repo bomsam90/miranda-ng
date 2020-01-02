@@ -39,7 +39,15 @@ struct REMINDERDATA : public MZeroedObject
 	}
 };
 
-static LIST<REMINDERDATA> arReminders(1, PtrKeySortT);
+static int ReminderSortCb(const REMINDERDATA *v1, const REMINDERDATA *v2)
+{
+	if (v1->When == v2->When)
+		return 0;
+
+	return (v1->When < v2->When) ? -1 : 1;
+}
+
+static LIST<REMINDERDATA> arReminders(1, ReminderSortCb);
 
 static class CReminderListDlg *pListDialog;
 
@@ -78,6 +86,13 @@ static REMINDERDATA* FindReminder(DWORD uid)
 			return pReminder;
 
 	return nullptr;
+}
+
+static void InsertReminder(REMINDERDATA *p)
+{
+	while (arReminders.find(p))
+		p->When++;
+	arReminders.insert(p);
 }
 
 static DWORD CreateUid()
@@ -219,7 +234,7 @@ static bool LoadReminder(char *Value)
 		TempRem->RepeatSound = 0;
 
 	// queue uid generation if invalid uid is present
-	arReminders.insert(TempRem);
+	InsertReminder(TempRem);
 	return TempRem->uid == 0;
 }
 
@@ -1227,7 +1242,7 @@ public:
 		m_pReminder->handle = nullptr;
 
 		// re-insert tree item sorted
-		arReminders.insert(m_pReminder);
+		InsertReminder(m_pReminder);
 		m_pReminder = nullptr; // prevent reminder from being deleted;
 		Close();
 	}
@@ -1435,7 +1450,7 @@ public:
 			TempRem->bRepeat = chkRepeat.GetState();
 			TempRem->SoundSel = cmbSound.GetItemData(cmbSound.GetCurSel());
 			TempRem->RepeatSound = TempRem->SoundSel < 0 ? 0 : (UINT)RepeatSound;
-			arReminders.insert(TempRem);
+			InsertReminder(TempRem);
 		}
 		else {
 			// update existing reminder
@@ -1448,7 +1463,7 @@ public:
 			m_pReminder->RepeatSound = m_pReminder->SoundSel < 0 ? 0 : (UINT)RepeatSound;
 
 			// re-insert tree item sorted
-			arReminders.insert(m_pReminder);
+			InsertReminder(m_pReminder);
 
 			m_pReminder->bVisible = false;
 			m_pReminder = nullptr; // prevent new reminder from being deleted
@@ -1528,26 +1543,14 @@ static void EditReminder(REMINDERDATA *p)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-static int ReminderSortCb(const REMINDERDATA *v1, const REMINDERDATA *v2)
-{
-	if (v1->When == v2->When)
-		return 0;
-
-	return (v1->When < v2->When) ? -1 : 1;
-}
-
 class CReminderListDlg : public CDlgBase
 {
 	void RefreshList()
 	{
 		m_list.DeleteAllItems();
 
-		LIST< REMINDERDATA> tmpSort(10, ReminderSortCb);
-		for (auto &it : arReminders)
-			tmpSort.insert(it);
-
 		int i = 0;
-		for (auto &pReminder : tmpSort) {
+		for (auto &pReminder : arReminders) {
 			LV_ITEM lvTIt;
 			lvTIt.mask = LVIF_TEXT;
 
@@ -1618,7 +1621,7 @@ public:
 		m_list.InsertColumn(1, &lvCol);
 
 		m_list.SetHoverTime(700);
-		m_list.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_TRACKSELECT);
+		m_list.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 		RefreshList();
 
 		SetWindowLongPtr(GetDlgItem(m_list.GetHwnd(), 0), GWL_ID, IDC_LISTREMINDERS_HEADER);
@@ -1635,6 +1638,7 @@ public:
 
 		Utils_SaveWindowPosition(m_hwnd, 0, MODULENAME, "ListReminders");
 		Window_FreeIcon_IcoLib(m_hwnd);
+		pListDialog = nullptr;
 	}
 
 	int Resizer(UTILRESIZECONTROL *urc) override
