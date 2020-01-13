@@ -161,7 +161,7 @@ class CDbxMDBX : public MDatabaseCommon, public MZeroedObject
 	// database stuff
 
 	TCHAR*   m_tszProfileName;
-	bool     m_safetyMode, m_bReadOnly, m_bShared, m_bEncrypted, m_bUsesPassword;
+	bool     m_safetyMode, m_bReadOnly, m_bShared, m_bEncrypted, m_bUsesPassword, m_bNeedsCompact;
 
 	MDBX_env *m_env;
 	CMDBX_txn_ro m_txn_ro;

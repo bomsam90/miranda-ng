@@ -124,6 +124,25 @@ int CDbxMDBX::Load()
 
 	FillContacts();
 
+	if (m_bNeedsCompact) {
+		m_bNeedsCompact = false;
+
+		DBVARIANT dbv = {};
+		dbv.type = DBVT_BYTE;
+		if (GetContactSetting(0, "Compatibility", "libmdbx", &dbv)) {
+			DBCONTACTWRITESETTING dbws = {};
+			dbws.szModule = "Compatibility";
+			dbws.szSetting = "libmdbx";
+			dbws.value.type = DBVT_BYTE;
+			dbws.value.bVal = 1;
+			WriteContactSetting(0, &dbws);
+
+			int iErrorCode = Compact();
+			if (iErrorCode)
+				Utils_OpenUrl("https://www.miranda-ng.org/news/old_profile_format");
+		}
+	}
+
 	return EGROKPRF_NOERROR;
 }
 
@@ -227,6 +246,16 @@ int CDbxMDBX::Map()
 {
 	if (!LockName(m_tszProfileName))
 		return EGROKPRF_CANTREAD;
+
+	if (!m_bReadOnly) {
+		FILE *in = _wfopen(m_tszProfileName, L"rb");
+		if (in != nullptr) {
+			uint8_t buf[256];
+			fread(buf, 1, sizeof(buf), in);
+			m_bNeedsCompact = buf[20] == 0xFF;
+			fclose(in);
+		}
+	}
 
 	mdbx_env_create(&m_env);
 	mdbx_env_set_maxdbs(m_env, 10);
