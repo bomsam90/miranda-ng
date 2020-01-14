@@ -65,3 +65,7 @@
 Логотип
 [Compact]
 Сжать
+[Database was compacted successfully]
+База успешно сжата
+[Database compaction failed]
+Не удалось сжать базу
