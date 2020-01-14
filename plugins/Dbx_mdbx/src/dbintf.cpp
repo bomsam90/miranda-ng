@@ -139,7 +139,7 @@ int CDbxMDBX::Load()
 
 			int iErrorCode = Compact();
 			if (iErrorCode)
-				Utils_OpenUrl("https://www.miranda-ng.org/news/old_profile_format");
+				Utils_OpenUrl("https://wiki.miranda-ng.org/Old_MDBX_profile_format");
 		}
 	}
 
